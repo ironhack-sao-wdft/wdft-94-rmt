@@ -37,3 +37,5 @@ const newArr2 = arr.map((currentElement) => {
 });
 
 const newArr3 = arr.map((currentElement) => currentElement.toUpperCase());
+
+[{ director: "Diretor1" }, { director: "Diretor2" }][("Diretor1", "Diretor2")];
