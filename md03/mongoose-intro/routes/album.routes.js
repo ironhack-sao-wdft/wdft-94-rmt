@@ -4,11 +4,130 @@ const albumRouter = express.Router();
 
 albumRouter.post("/", async (req, res) => {
   try {
+    if (!req.headers.authorization) {
+      return res.status(401).json("Não autorizado.");
+    }
+
     const newAlbum = await AlbumModel.create({ ...req.body });
 
     return res.status(201).json(newAlbum);
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
+    // checking validation
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map((value) => value.message);
+      return res.status(400).json({
+        error: message,
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(400).json(error.message);
+    }
+
+    return res.status(500).json(error.message);
+  }
+});
+
+albumRouter.get("/", async (req, res) => {
+  try {
+    const albums = await AlbumModel.find();
+
+    return res.status(200).json(albums);
+  } catch (error) {
+    console.log(error);
+    // checking validation
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map((value) => value.message);
+      return res.status(400).json({
+        error: message,
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(400).json(error.message);
+    }
+
+    return res.status(500).json(error.message);
+  }
+});
+
+albumRouter.get("/:albumId", async (req, res) => {
+  try {
+    const { albumId } = req.params;
+
+    const album = await AlbumModel.findOne({ _id: albumId });
+
+    return res.status(200).json(album);
+  } catch (error) {
+    console.log(error);
+    // checking validation
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map((value) => value.message);
+      return res.status(400).json({
+        error: message,
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(400).json(error.message);
+    }
+
+    return res.status(500).json(error.message);
+  }
+});
+
+albumRouter.put("/:albumId", async (req, res) => {
+  try {
+    const { albumId } = req.params;
+
+    const updatedAlbum = await AlbumModel.findOneAndUpdate(
+      { _id: albumId },
+      { ...req.body },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json(updatedAlbum);
+  } catch (error) {
+    console.log(error);
+    // checking validation
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map((value) => value.message);
+      return res.status(400).json({
+        error: message,
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(400).json(error.message);
+    }
+
+    return res.status(500).json(error.message);
+  }
+});
+
+albumRouter.delete("/:albumId", async (req, res) => {
+  try {
+    const { albumId } = req.params;
+
+    const deleted = await AlbumModel.deleteOne({ _id: albumId });
+
+    return res.status(200).json(deleted);
+  } catch (error) {
+    console.log(error);
+    // checking validation
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors).map((value) => value.message);
+      return res.status(400).json({
+        error: message,
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(400).json(error.message);
+    }
+
+    return res.status(500).json(error.message);
   }
 });
 
