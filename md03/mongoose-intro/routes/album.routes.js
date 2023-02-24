@@ -1,14 +1,19 @@
 import express from "express";
 import { AlbumModel } from "../models/album.model.js";
+import { ArtistModel } from "../models/artist.model.js";
 const albumRouter = express.Router();
 
-albumRouter.post("/", async (req, res) => {
+albumRouter.post("/:artistId", async (req, res) => {
   try {
-    if (!req.headers.authorization) {
-      return res.status(401).json("Não autorizado.");
-    }
+    const { artistId } = req.params;
 
-    const newAlbum = await AlbumModel.create({ ...req.body });
+    const newAlbum = await AlbumModel.create({ ...req.body, artist: artistId });
+
+    await ArtistModel.findOneAndUpdate(
+      { _id: artistId },
+      { $push: { albums: newAlbum._id } },
+      { new: true, runValidators: true }
+    );
 
     return res.status(201).json(newAlbum);
   } catch (error) {
@@ -56,7 +61,7 @@ albumRouter.get("/:albumId", async (req, res) => {
   try {
     const { albumId } = req.params;
 
-    const album = await AlbumModel.findOne({ _id: albumId });
+    const album = await AlbumModel.findOne({ _id: albumId }).populate("artist");
 
     return res.status(200).json(album);
   } catch (error) {
@@ -111,6 +116,12 @@ albumRouter.delete("/:albumId", async (req, res) => {
     const { albumId } = req.params;
 
     const deleted = await AlbumModel.deleteOne({ _id: albumId });
+
+    await ArtistModel.findOneAndUpdate(
+      { albums: albumId },
+      { $pull: { albums: albumId } },
+      { runValidators: true }
+    );
 
     return res.status(200).json(deleted);
   } catch (error) {
